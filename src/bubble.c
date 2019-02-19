@@ -4,6 +4,8 @@
 #include <x86intrin.h>
 
 #define NBEXPERIMENTS 7
+#define nbthreads 8
+// #define CHUNK 4
 static long long unsigned int experiments[NBEXPERIMENTS];
 
 /* 
@@ -35,7 +37,7 @@ long long unsigned int average(long long unsigned int *exps)
     s = s + exps[i];
   }
 
-  return s / (NBEXPERIMENTS - 2);
+  return s / (NBEXPERIMENTS - 4);
 }
 
 void init_array(array_int T)
@@ -99,23 +101,29 @@ void sequential_bubble_sort(int *T, const int size)
 void parallel_bubble_sort(int *T, const int size)
 {
   /* TODO: parallel implementation of bubble sort */
-  int i, is_swap = 0;
-  while (is_swap == 0)
+  int i = 0, is_swap = 1;
+  while (is_swap != 0)
   {
-    #pragma omp parallel default(none) shared(T, i, is_swap)
-    is_swap = 1;
-    for (i = 0; i < size - 1; i++)
+    is_swap = 0;
+#pragma omp parallel default(none) shared(T) private(i) reduction(+:is_swap)
     {
-      if (T[i] > T[i + 1])
+      for (int j = 0; j < 2; j++)
       {
-        swap(T + i, T + i + 1);
-        is_swap = 0;
+#pragma omp for
+        for (i = j; i < size - 1; i += 2)
+        {
+          if (T[i] > T[i + 1])
+          {
+            swap(T + i, T + i + 1);
+            is_swap++;
+          }
+        }
       }
     }
   }
+
   return;
 }
-
 int main(int argc, char **argv)
 {
   unsigned long long int start, end, residu;
@@ -134,13 +142,14 @@ int main(int argc, char **argv)
   X = (int *)malloc(N * sizeof(int));
 
   printf("--> Sorting an array of size %u\n", N);
+  omp_set_num_threads(nbthreads);
 
   start = _rdtsc();
   end = _rdtsc();
   residu = end - start;
 
   printf("=======================\n");
-  printf("\nSequential Bubble Sort: ");
+  printf("\nSequential Bubble Sort:\n");
 
   for (exp = 0; exp < NBEXPERIMENTS; exp++)
   {
@@ -161,31 +170,33 @@ int main(int argc, char **argv)
     }
     // print_array(X);
   }
+  av = average(experiments);
+  printf("Cycle time: \t%Ld cycles\n\n", av - residu);
+
+  printf("=======================\n");
+  printf("\nParallel Bubble Sort:\n");
+  printf("Number of cores:\t%d\n", nbthreads);
+  for (exp = 0; exp < NBEXPERIMENTS; exp++)
+  {
+    init_array(X);
+    start = _rdtsc();
+
+    parallel_bubble_sort(X, N);
+
+    end = _rdtsc();
+    experiments[exp] = end - start;
+
+    /* verifying that X is properly sorted */
+    if (!is_sorted(X))
+    {
+      fprintf(stderr, "ERROR: the array is not properly sorted\n");
+      print_array(X);
+      exit(-1);
+    }
+  }
 
   av = average(experiments);
+  printf("Cycle time:\t%Ld cycles\n\n", av - residu);
 
-  printf("%Ld cycles\n\n", av - residu);
-
-  // for (exp = 0; exp < NBEXPERIMENTS; exp++)
-  // {
-  //   init_array(X);
-  //   start = _rdtsc();
-
-  //   parallel_bubble_sort(X, N);
-
-  //   end = _rdtsc();
-  //   experiments[exp] = end - start;
-
-  //   /* verifying that X is properly sorted */
-  //   if (!is_sorted(X))
-  //   {
-  //     fprintf(stderr, "ERROR: the array is not properly sorted\n");
-  //     exit(-1);
-  //   }
-  // }
-
-  // av = average(experiments);
-  // printf("\n bubble parallel \t %Ld cycles\n\n", av - residu);
-
-  // print_array (X) ;
+  //
 }
