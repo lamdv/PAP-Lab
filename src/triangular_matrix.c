@@ -259,7 +259,7 @@ int main(int argv, char *args[])
   double r;
 
   omp_set_num_threads(nthreads);
-  printf("number of threads %d\n", omp_get_max_threads());
+  printf("--> number of threads %d\n", omp_get_max_threads());
 
   /* rdtsc: read the cycle counter */
   start = _rdtsc();
@@ -288,6 +288,7 @@ int main(int argv, char *args[])
 
   // print_vector(v2);
 
+  printf("=======================\n");
   printf("Full matrix multiplication vector \t\t  %Ld cycles\n", av - residu);
 
   init_vector(v1, 1.0);
@@ -308,7 +309,7 @@ int main(int argv, char *args[])
   /*
     print_vector (v2) ;
   */
-
+  printf("=======================\n");
   printf("Triangular Matrix multiplication vector\t\t  %Ld cycles\n", av - residu);
 
   init_vector(v1, 1.0);
@@ -330,6 +331,7 @@ int main(int argv, char *args[])
     print_vector (a) ;
   */
 
+  printf("=======================\n");
   printf("Parallel Loop Static Scheduling \t\t  %Ld cycles\n", av - residu);
 
   init_vector(v1, 1.0);
@@ -351,6 +353,7 @@ int main(int argv, char *args[])
     print_vector (a) ;
   */
 
+  printf("=======================\n");
   printf("Parallel Loop Dynamic Scheduling \t\t  %Ld cycles\n", av - residu);
 
   init_vector(v1, 1.0);
@@ -372,6 +375,7 @@ int main(int argv, char *args[])
      print_vector (v2) ;
   */
 
+  printf("=======================\n");
   printf("Parallel Loop Guided Scheduling \t\t  %Ld cycles\n", av - residu);
 
   init_vector(v1, 1.0);
@@ -393,6 +397,7 @@ int main(int argv, char *args[])
      print_vector (v2) ;
   */
 
+  printf("=======================\n");
   printf("Parallel Loop Runtime Scheduling \t\t  %Ld cycles\n", av - residu);
 
   return 0;
