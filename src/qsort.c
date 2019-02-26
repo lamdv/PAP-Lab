@@ -2,86 +2,89 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include<omp.h>
+#include <omp.h>
 
 #include <x86intrin.h>
 
-#define NBEXPERIMENTS   7
+#define NBEXPERIMENTS 100000
+#define NBTHREADS 8
 
-static long long unsigned int experiments [NBEXPERIMENTS] ;
+static long long unsigned int experiments[NBEXPERIMENTS];
 
 /* 
   quick sort -- sequential, parallel --
 */
 
-static unsigned int     N ;
+static unsigned int N;
 
-typedef  int  *array_int ;
+typedef int *array_int;
 
-static array_int X ;
+static array_int X;
 
-void init_array (array_int T)
+void init_array(array_int T)
 {
-  register int i ;
+  register int i;
 
-  for (i = 0 ; i < N ; i++)
-    {
-      T [i] = N - i ;
-    }
+  for (i = 0; i < N; i++)
+  {
+    T[i] = N - i;
+  }
 }
 
-void print_array (array_int T)
+void print_array(array_int T)
 {
-  register int i ;
+  register int i;
 
-  for (i = 0 ; i < N ; i++)
-    {
-      printf ("%d ", T[i]) ;
-    }
-  printf ("\n") ;
+  for (i = 0; i < N; i++)
+  {
+    printf("%d ", T[i]);
+  }
+  printf("\n");
 }
 
-int is_sorted (array_int T)
+int is_sorted(array_int T)
 {
-    register int i ;
-  
-  for (i = 1 ; i < N ; i++)
-    {
-        /* test designed specifically for our usecase */
-        if (T[i-1] +1  != T [i] )
-            return 0 ;
-    }
-  return 1 ;
+  register int i;
+
+  for (i = 1; i < N; i++)
+  {
+    /* test designed specifically for our usecase */
+    if (T[i - 1] + 1 != T[i])
+      return 0;
+  }
+  return 1;
 }
 
-long long unsigned int average (long long unsigned int *exps)
+long long unsigned int average(long long unsigned int *exps)
 {
-  unsigned int i ;
-  long long unsigned int s = 0 ;
+  unsigned int i;
+  long long unsigned int s = 0;
 
-  for (i = 2; i < (NBEXPERIMENTS-2); i++)
-    {
-      s = s + exps [i] ;
-    }
+  for (i = 2; i < (NBEXPERIMENTS - 2); i++)
+  {
+    s = s + exps[i];
+  }
 
-  return s / (NBEXPERIMENTS-2) ;
+  return s / (NBEXPERIMENTS - 4);
 }
 
-
-static int compare (const void *x, const void *y)
+static int compare(const void *x, const void *y)
 {
-    /* TODO: comparison function to be used by qsort()*/
+  /* TODO: comparison function to be used by qsort()*/
 
-    /* cast x and y to int* before comparing */
-    
+  /* cast x and y to int* before comparing */
+  // int* temp_x = (int*) x;
+  // int* temp_y = (int*) y;
+  // return *temp_x>*temp_y;
+  return (int *const *)x < (int *const *)y;
 }
 
-void sequential_qsort_sort (int *T, const int size)
+void sequential_qsort_sort(int *T, const int size)
 {
 
-    /* TODO: sequential sorting based on libc qsort() function */
-  
-    return ;
+  /* TODO: sequential sorting based on libc qsort() function */
+  qsort(T, size, sizeof(int), compare);
+  return;
 }
 
 /* 
@@ -89,162 +92,216 @@ void sequential_qsort_sort (int *T, const int size)
    The two chunks are of size size
    First chunck starts at T[0], second chunck starts at T[size]
 */
-void merge (int *T, const int size)
+void merge(int *T, const int size)
 {
-  int *X = (int *) malloc (2 * size * sizeof(int)) ;
-  
-  int i = 0 ;
-  int j = size ;
-  int k = 0 ;
-  
-  while ((i < size) && (j < 2*size))
+  int *X = (int *)malloc(2 * size * sizeof(int));
+
+  int i = 0;
+  int j = size;
+  int k = 0;
+
+  while ((i < size) && (j < 2 * size))
+  {
+    if (T[i] < T[j])
     {
-      if (T[i] < T [j])
-	{
-	  X [k] = T [i] ;
-	  i = i + 1 ;
-	}
-      else
-	{
-	  X [k] = T [j] ;
-	  j = j + 1 ;
-	}
-      k = k + 1 ;
+      X[k] = T[i];
+      i = i + 1;
     }
+    else
+    {
+      X[k] = T[j];
+      j = j + 1;
+    }
+    k = k + 1;
+  }
 
   if (i < size)
+  {
+    for (; i < size; i++, k++)
     {
-      for (; i < size; i++, k++)
-	{
-	  X [k] = T [i] ;
-	}
+      X[k] = T[i];
     }
+  }
   else
+  {
+    for (; j < 2 * size; j++, k++)
     {
-      for (; j < 2*size; j++, k++)
-	{
-	  X [k] = T [j] ;
-	}
+      X[k] = T[j];
     }
-  
-  memcpy (T, X, 2*size*sizeof(int)) ;
-  free (X) ;
-  
-  return ;
+  }
+
+  memcpy(T, X, 2 * size * sizeof(int));
+  free(X);
+
+  return;
 }
 
-
-
-void parallel_qsort_sort (int *T, const int size)
+void parallel_qsort_sort(int *T, const int size)
 {
 
-    /* TODO: parallel sorting based on libc qsort() function +
+  /* TODO: parallel sorting based on libc qsort() function +
      * sequential merging */
-
-}
-
-
-void parallel_qsort_sort1 (int *T, const int size)
-{
-
-    /* TODO: parallel sorting based on libc qsort() function +
-     * PARALLEL merging */
-
-}
-
-
-int main (int argc, char **argv)
-{
-  unsigned long long int start, end, residu ;
-  unsigned long long int av ;
-  unsigned int exp ;
-  
-  if (argc != 2)
+  // #pragma omp parallel num_threads(NBTHREADS)
+  //   {
+  //     if (size <= 32)
+  //     {
+  //       // merge(T,1);
+  //       qsort(T, 1024, sizeof(int), compare);
+  //     }
+  //     else
+  //     {
+  // #pragma omp task
+  //       parallel_qsort_sort(T, size / 2);
+  // #pragma omp task
+  //       parallel_qsort_sort(T + size / 2, size / 2);
+  // #pragma omp barrier
+  //       merge(T, size / 2);
+  //     }
+  int i;
+  int merge_size = size / NBTHREADS;
+#pragma omp parallel num_threads(NBTHREADS)
+  {
+#pragma omp for
+    for (i = 0; i < size; i += merge_size)
     {
-      fprintf (stderr, "qsort N \n") ;
-      exit (-1) ;
+      qsort(T + i, merge_size, sizeof(int), compare);
     }
+  }
+  i = 0;
+  while (merge_size < size)
+  {
+    for (i = 0; i < size; i += 2 * merge_size)
+    {
+      merge(T + i, merge_size);
+    }
+    merge_size *= 2;
+  }
+}
 
-  N = 1 << (atoi(argv[1])) ;
-  X = (int *) malloc (N * sizeof(int)) ;
+void parallel_qsort_sort1(int *T, const int size)
+{
 
-  printf("--> Sorting an array of size %u\n",N);
-  
-  start = _rdtsc () ;
-  end   = _rdtsc () ;
-  residu = end - start ;
+  /* TODO: parallel sorting based on libc qsort() function +
+     * PARALLEL merging */
+  int i;
+  int merge_size = size / NBTHREADS;
+#pragma omp parallel num_threads(NBTHREADS)
+  {
+#pragma omp for
+    for (i = 0; i < size; i += merge_size)
+    {
+      qsort(T + i, merge_size, sizeof(int), compare);
+    }
+  }
+  i = 0;
+  while (merge_size < size)
+  {
+#pragma omp parallel num_threads(NBTHREADS)
+    {
+#pragma omp for
+      for (i = 0; i < size; i += 2 * merge_size)
+      {
+        merge(T + i, merge_size);
+      }
+    }
+    merge_size *= 2;
+  }
+}
+
+int main(int argc, char **argv)
+{
+  unsigned long long int start, end, residu;
+  unsigned long long int av;
+  unsigned int exp;
+
+  omp_set_num_threads(NBTHREADS);
+
+  if (argc != 2)
+  {
+    fprintf(stderr, "qsort N \n");
+    exit(-1);
+  }
+
+  N = 1 << (atoi(argv[1]));
+  X = (int *)malloc(N * sizeof(int));
+
+  printf("--> Sorting an array of size %u\n", N);
+
+  start = _rdtsc();
+  end = _rdtsc();
+  residu = end - start;
 
   printf("sequential sorting ...\n");
-  
-  for (exp = 0 ; exp < NBEXPERIMENTS; exp++)
+
+  for (exp = 0; exp < NBEXPERIMENTS; exp++)
+  {
+    init_array(X);
+
+    start = _rdtsc();
+
+    sequential_qsort_sort(X, N);
+
+    end = _rdtsc();
+    experiments[exp] = end - start;
+
+    if (!is_sorted(X))
     {
-      init_array (X) ;
-      
-      start = _rdtsc () ;
-
-      sequential_qsort_sort (X, N) ;
-     
-      end = _rdtsc () ;
-      experiments [exp] = end - start ;
-
-      if (! is_sorted (X)){
-            fprintf(stderr, "ERROR: the array is not properly sorted\n") ;
-            exit (-1) ;
-        }
+      fprintf(stderr, "ERROR: the array is not properly sorted\n");
+      print_array(X);
+      exit(-1);
     }
-  
-  av = average (experiments) ;  
-  printf ("\n qsort serial\t\t %Ld cycles\n\n", av-residu) ;
+  }
 
+  av = average(experiments);
+  printf("\n qsort serial\t\t %Ld cycles\n\n", av - residu);
 
   printf("parallel (seq merge) ...\n");
-    
-  
-  for (exp = 0 ; exp < NBEXPERIMENTS; exp++)
+
+  for (exp = 0; exp < NBEXPERIMENTS; exp++)
+  {
+    init_array(X);
+
+    start = _rdtsc();
+
+    parallel_qsort_sort(X, N);
+
+    end = _rdtsc();
+    experiments[exp] = end - start;
+
+    if (!is_sorted(X))
     {
-      init_array (X) ;
-      
-      start = _rdtsc () ;
-
-      parallel_qsort_sort (X, N) ;
-     
-      end = _rdtsc () ;
-      experiments [exp] = end - start ;
-
-      if (! is_sorted (X))
-	{
-            fprintf(stderr, "ERROR: the array is not properly sorted\n") ;
-            exit (-1) ;
-	}      
+      fprintf(stderr, "ERROR: the array is not properly sorted\n");
+      print_array(X);
+      exit(-1);
     }
-  
-  av = average (experiments) ;
-  printf ("\n qsort parallel (seq merge) \t %Ld cycles\n\n", av-residu) ;
+  }
+
+  av = average(experiments);
+  printf("\n qsort parallel (seq merge) \t %Ld cycles\n\n", av - residu);
 
   printf("parallel ...\n");
 
+  for (exp = 0; exp < NBEXPERIMENTS; exp++)
+  {
+    init_array(X);
 
-  for (exp = 0 ; exp < NBEXPERIMENTS; exp++)
+    start = _rdtsc();
+
+    parallel_qsort_sort1(X, N);
+
+    end = _rdtsc();
+    experiments[exp] = end - start;
+
+    if (!is_sorted(X))
     {
-      init_array (X) ;
-      
-      start = _rdtsc () ;
-
-      parallel_qsort_sort1 (X, N) ;
-     
-      end = _rdtsc () ;
-      experiments [exp] = end - start ;
-
-      if (! is_sorted (X))
-	{
-            fprintf(stderr, "ERROR: the array is not properly sorted\n") ;
-            exit (-1) ;
-	}      
+      fprintf(stderr, "ERROR: the array is not properly sorted\n");
+      // print_array(X);
+      exit(-1);
     }
-  
-  av = average (experiments) ;
-  printf ("\n qsort parallel \t %Ld cycles\n\n", av-residu) ;
-  
+  }
+
+  av = average(experiments);
+  printf("\n qsort parallel \t %Ld cycles\n\n", av - residu);
+
   //   print_array (X) ;
-  
 }

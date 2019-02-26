@@ -22,14 +22,14 @@ echo "=================================================================="
 echo "Building Task 3: Quick Sort"
 echo "gcc -fopenmp qsort.c -o build/qsort"
 gcc -fopenmp qsort.c -o build/qsort
-build/qsort
+build/qsort 10
 fi
 if [[ $* == *"4"* ]] || [ $# == 0 ];
 then
 echo "=================================================================="
-echo "Building Task 2: Merge Sort"
+echo "Building Task 4: Merge Sort"
 echo "gcc -fopenmp mergesort.c -o build/mergesort"
 gcc -fopenmp mergesort.c -o build/mergesort
-build/mergesort
+build/mergesort 10
 fi
 echo "=================================================================="
