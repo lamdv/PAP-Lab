@@ -4,9 +4,9 @@
 
 #include <x86intrin.h>
 
-#define NBEXPERIMENTS 1000
+#define NBEXPERIMENTS 10000
 
-#define nthreads 6
+#define nthreads 16
 
 static long long unsigned int experiments[NBEXPERIMENTS];
 
@@ -149,7 +149,7 @@ void mult_mat_vector_tri_inf1(matrix M, vector b, vector c)
 #pragma omp critical
   {
     for (int k = 0; k < N; k++)
-      c[k] += r[k];
+      c[k] = r[k];
   }
 
   return;
@@ -180,7 +180,7 @@ void mult_mat_vector_tri_inf2(matrix M, vector b, vector c)
 #pragma omp critical
   {
     for (int k = 0; k < N; k++)
-      c[k] += r[k];
+      c[k] = r[k];
   }
 
   return;
@@ -211,7 +211,7 @@ void mult_mat_vector_tri_inf3(matrix M, vector b, vector c)
 #pragma omp critical
   {
     for (int k = 0; k < N; k++)
-      c[k] += r[k];
+      c[k] = r[k];
   }
 
   return;

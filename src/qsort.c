@@ -7,7 +7,7 @@
 #include <x86intrin.h>
 
 #define NBEXPERIMENTS 100000
-#define NBTHREADS 8
+#define NBTHREADS 4
 
 static long long unsigned int experiments[NBEXPERIMENTS];
 
@@ -141,22 +141,6 @@ void parallel_qsort_sort(int *T, const int size)
 
   /* TODO: parallel sorting based on libc qsort() function +
      * sequential merging */
-  // #pragma omp parallel num_threads(NBTHREADS)
-  //   {
-  //     if (size <= 32)
-  //     {
-  //       // merge(T,1);
-  //       qsort(T, 1024, sizeof(int), compare);
-  //     }
-  //     else
-  //     {
-  // #pragma omp task
-  //       parallel_qsort_sort(T, size / 2);
-  // #pragma omp task
-  //       parallel_qsort_sort(T + size / 2, size / 2);
-  // #pragma omp barrier
-  //       merge(T, size / 2);
-  //     }
   int i;
   int merge_size = size / NBTHREADS;
 #pragma omp parallel num_threads(NBTHREADS)

@@ -3,8 +3,8 @@
 
 #include <x86intrin.h>
 
-#define NBEXPERIMENTS 7
-#define nbthreads 8
+#define NBEXPERIMENTS 10000
+#define nbthreads 4
 // #define CHUNK 4
 static long long unsigned int experiments[NBEXPERIMENTS];
 

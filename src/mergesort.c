@@ -7,7 +7,8 @@
 #include <x86intrin.h>
 
 #define NBEXPERIMENTS 10000
-#define THRESHOLD 4
+#define THRESHOLD 256
+#define NBTHREADS 4
 
 static long long unsigned int experiments[NBEXPERIMENTS];
 
@@ -122,14 +123,10 @@ void merge_sort(int *T, const int size)
   }
 }
 
-// Vanila version of parallel merge sort
-// Naively break in to chunk and merge
-// Number of instance: (N-1)!
 void parallel_merge_sort(int *T, const int size)
 {
   if (size < 2)
   {
-    // merge_sort(T, size);
     return;
   }
   else
@@ -145,9 +142,6 @@ void parallel_merge_sort(int *T, const int size)
   }
 }
 
-// Improved version of parallel_merge_sort
-// Only break down until threshold, then switch to sequential merge sort
-// Number of instance: ((N-1)/threshold)!
 void parallel_merge_sort_improved(int *T, const int size, int threshold)
 {
   if (size < threshold){
@@ -169,7 +163,7 @@ void parallel_merge_sort_improved(int *T, const int size, int threshold)
 
 int main(int argc, char **argv)
 {
-  omp_set_num_threads(8);
+  omp_set_num_threads(NBTHREADS);
   omp_set_nested(1);
   omp_set_dynamic(1);
   unsigned long long int start, end, residu;
