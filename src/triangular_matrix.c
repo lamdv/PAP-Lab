@@ -6,7 +6,7 @@
 
 #define NBEXPERIMENTS 1000
 
-#define nthreads 8
+#define nthreads 2
 
 static long long unsigned int experiments[NBEXPERIMENTS];
 
@@ -97,7 +97,7 @@ void mult_mat_vector(matrix M, vector b, vector c)
   for (i = 0; i < N; i = i + 1)
   {
     r = 0.0;
-    for (j = i; j < N; j = j + 1)
+    for (j = 0; j < N; j = j + 1)
     {
       r += M[i][j] * b[j];
     }
