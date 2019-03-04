@@ -6,7 +6,7 @@
 
 #define NBEXPERIMENTS 1000
 
-#define nthreads 2
+#define nthreads 6
 
 static long long unsigned int experiments[NBEXPERIMENTS];
 
@@ -140,7 +140,7 @@ void mult_mat_vector_tri_inf1(matrix M, vector b, vector c)
     for (i = 0; i < N; i = i + 1)
     {
       r[i] = 0.0;
-      for (j = i; j < N; j = j + 1)
+      for (j = 0; j < i; j = j + 1)
       {
         r[i] += M[i][j] * b[j];
       }
@@ -171,7 +171,7 @@ void mult_mat_vector_tri_inf2(matrix M, vector b, vector c)
     for (i = 0; i < N; i = i + 1)
     {
       r[i] = 0.0;
-      for (j = i; j < N; j = j + 1)
+      for (j = 0; j < i; j = j + 1)
       {
         r[i] += M[i][j] * b[j];
       }
@@ -202,7 +202,7 @@ void mult_mat_vector_tri_inf3(matrix M, vector b, vector c)
     for (i = 0; i < N; i = i + 1)
     {
       r[i] = 0.0;
-      for (j = i; j < N; j = j + 1)
+      for (j = 0; j < i; j = j + 1)
       {
         r[i] += M[i][j] * b[j];
       }
@@ -232,7 +232,7 @@ void mult_mat_vector_tri_inf4(matrix M, vector b, vector c)
     for (i = 0; i < N; i = i + 1)
     {
       r[i] = 0.0;
-      for (j = i; j < N; j = j + 1)
+      for (j = 0; j < i; j = j + 1)
       {
         r[i] += M[i][j] * b[j];
       }
