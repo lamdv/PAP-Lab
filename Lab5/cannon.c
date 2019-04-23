@@ -2,6 +2,7 @@
 #include <mpi.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 
 /* Support Functions Declaration */
 void Init(int n, int *a, int *b, int *c);
@@ -59,6 +60,7 @@ int main(int argc, char *argv[])
 	int up, down, left, right;
 	// , coords[2];
 	int shiftsource, shiftdest;
+	int *p_a, *p_b;
 	MPI_Status status;
 	MPI_Comm comm_2d;
 
@@ -85,31 +87,38 @@ int main(int argc, char *argv[])
 
 	int leftshift = my2drank / nlocal;
 	int upshift = my2drank % nlocal;
-	/* Compute ranks of the up and left shifts */
+	// /* Compute ranks of the up and left shifts */
 	MPI_Cart_shift(comm_2d, 1, -1, &right, &left);
 	MPI_Cart_shift(comm_2d, 0, -1, &down, &up);
 	/* Initial matrix skewing */
-
+	p_a = malloc(nlocal * nlocal * sizeof(int));
+	p_b = malloc(nlocal * nlocal * sizeof(int));
+	memcpy(p_a, &a[mycoords[0], mycoords[1]], nlocal * nlocal * sizeof(int));
+	memcpy(p_b, &b[mycoords[0], mycoords[1]], nlocal * nlocal * sizeof(int));
+	MPI_Request r_request, c_request, r1_request, c1_request;
 	MPI_Cart_shift(comm_2d, 0, -mycoords[0], &shiftsource, &shiftdest);
-	MPI_Sendrecv_replace(a, nlocal * nlocal, MPI_INT, shiftdest, 1, shiftsource, 1, comm_2d, &status);
+	MPI_Isend(p_a, nlocal*nlocal, MPI_INT, shiftdest, 1, comm_2d, c_request);
+	MPI_Irecv(p_a, nlocal*nlocal, MPI_INT, shiftsource, 1, comm_2d, c1_request);
+	memcpy(&a[mycoords[0], mycoords[1]], p_a, nlocal * nlocal * sizeof(int));
+	// MPI_Sendrecv_replace(p_a, nlocal * nlocal, MPI_INT, shiftdest, 1, shiftsource, 1, comm_2d, &status);
 
-	
+MPI_Cart_shift(comm_2d, 1, -mycoords[1], &shiftsource, &shiftdest);
+	MPI_Isend(p_b, nlocal*nlocal, MPI_INT, shiftdest, 1, comm_2d, r_request);
+	MPI_Irecv(p_b, nlocal*nlocal, MPI_INT, shiftsource, 1, comm_2d, r1_request);
+	memcpy(&b[mycoords[0], mycoords[1]], p_b, nlocal * nlocal * sizeof(int));
+	printf("So far");
+	// MPI_Sendrecv_replace(p_b, nlocal * nlocal, MPI_INT, shiftdest, 1, shiftsource, 1, comm_2d, &status);
+	// if (myrank == 0)
+	// {
+	// 	printf("matrix dimension: %d, submatrix dimension: %d, mesh dimension: %d\n", n, nlocal, dims[0]);
+	// }
+	// printf("I am %d,\n", myrank);
+	// printf("my surrounding: %d %d %d %d\n", left, right, down, up);
 
-	MPI_Cart_shift(comm_2d, 1, -mycoords[1], &shiftsource, &shiftdest);
-	MPI_Sendrecv_replace(b, nlocal * nlocal, MPI_INT, shiftdest, 1, shiftsource, 1, comm_2d, &status);
-	if (myrank == 0)
-	{
-		printf("matrix dimension: %d, submatrix dimension: %d, mesh dimension: %d\n", n, nlocal, dims[0]);
-	}
-	printf("I am %d,\n", myrank);
-	printf("my surrounding: %d %d %d %d\n", left, right, down, up);
-
-	printf("debug");
+	// printf("debug");
 	/* Main computation loop */
 	for (i = 0; i < dims[0]; i++)
 	{
-		// MPI_Cart_shift(comm_2d, 0, -1, &right, &left);
-		// MPI_Cart_shift(comm_2d, 1, -1, &down, &up);
 		/* Perform Serials multiplycation at location
             c=c+a*b*/
 		MatrixMultiply(nlocal, a, b, c);
